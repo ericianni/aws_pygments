@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pygments Web - Canvas Edition</title>
+    <link rel="stylesheet" href="./static/styles/styles.css">
+    <script>
+        window.addEventListener("load", function () {
+            var url = "";
+            var fileForm = document.getElementById("fileForm");
+            var codeForm = document.getElementById("codeForm");
+            var copyButton = document.getElementById("copyButton");
+
+            function sendFile() {
+                var xhr = new XMLHttpRequest();
+                var formData = new FormData(fileForm);
+                xhr.open("POST", url + "/file", true);
+                xhr.onreadystatechange = function () {
+                    if (xhr.readyState == 4 && xhr.status == 200) {
+                        document.getElementById("code").value = xhr.responseText;
+                    }
+                }
+                xhr.send(formData);
+            }
+
+            function sendCode() {
+                var xhr = new XMLHttpRequest();
+                var formData = new FormData(codeForm);
+                xhr.open("POST", url, true);
+                xhr.onreadystatechange = function () {
+                    if (xhr.readyState == 4 && xhr.status == 200) {
+                        response = JSON.parse(xhr.responseText);
+                        document.getElementById("formatted").innerHTML = response.code;
+                        document.getElementById("type").innerText = response.language;
+                        document.getElementById("raw").value = response.code;
+                    }
+                }
+                xhr.send(formData);
+            }
+
+            fileForm.addEventListener("submit", function (event) {
+                event.preventDefault();
+                sendFile();
+            });
+
+            codeForm.addEventListener("submit", function (event) {
+                event.preventDefault();
+                sendCode()
+            });
+
+            copyButton.addEventListener("click", function (event) {
+                var text = document.getElementById("raw");
+                text.select();
+                text.setSelectionRange(0, 99999);
+                document.execCommand("copy");
+            });
+
+            var coll = document.getElementsByClassName("collapsible");
+            var i;
+
+            for (i = 0; i < coll.length; i++) {
+                coll[i].addEventListener("click", function () {
+                    this.classList.toggle("active");
+                    var content = this.nextElementSibling;
+                    if (content.style.display === "block") {
+                        content.style.display = "none";
+                    } else {
+                        content.style.display = "block";
+                    }
+                });
+            }
+        });
+    </script>
+</head>
+
+<body>
+    <div>
+        <button type="button" class="collapsible">Instructions (click)</button>
+        <div class="content">
+            <p>If you have a file containing the code you wish to highlight, you can upload it and have it automatically
+                populate the form. You can also directly type or paste code into the form.</p>
+            <p>Once your code is ready in the text field, you need to set your options.
+            </p>
+            <ul>
+                <li><strong>Language</strong>: <em>Auto</em> will usually correctly identify the language, but sometimes
+                    you
+                    will need to set it yourself.</li>
+                <li><strong>Color Scheme</strong>: Select how you would like the final code to look</li>
+                <li><strong>WCAG</strong>: <em>None</em> will use Pygments' built-in colors, but many of them do not
+                    pass
+                    Accessibility checks. It is recommended you us <em>AA</em> at the minimum.</li>
+                <li><strong>Line numbers</strong>: Toggle if you wish to display line numbers in a mobile friendly
+                    format.
+                </li>
+                <li><strong>Highlight lines</strong>: If you need to draw attention to particular lines, you may use this option. Each line to highlight needs to individually typed with a space in between.</li>
+                <li><strong>Bold everything</strong>: Bolding can potentially increase readibility of individual letters, but may reduce how easy it is to parse the code.</li>
+            </ul>
+            <p>After you have your options set, click the <em>Highlight Code</em> button. You will then see the raw HTML code you can use directly in Canvas along with how it will look. It is a good idea to check the preview to ensure the correct language was used to highlight the code. For ease of use, please use the <em>Copy Text</em> button. To use in Canvas, make sure you are in the HTML Editor and <em>not</em> the Rich Text Editor.</p>
+
+        </div>
+    </div>
+    <br/>
+    <form id="fileForm">
+        <fieldset>
+            <legend>File Upload</legend>
+            <input type="file" name="file" id="file">
+            <input type="submit" value="Upload File">
+        </fieldset>
+    </form>
+    <h3>or</h3>
+    <form id="codeForm">
+        <fieldset id="codeSet">
+            <legend>Copy and Paste</legend>
+            <label for="code">Code to be formatted:</label>
+            <br />
+            <textarea id="code" name="code" rows="10" cols="80" placeholder="Paste code here"></textarea>
+            <br />
+            <label for="language">Language:</label>
+            <select name="language" id="language">
+                <option value="auto">Auto</option>
+                <option value="c">C</option>
+                <option value="c++">C++</option>
+                <option value="css">CSS</option>
+                <option value="dart">Dart</option>
+                <option value="go">Go</option>
+                <option value="html">HTML</option>
+                <option value="java">Java</option>
+                <option value="javascript">JavaScript</option>
+                <option value="python">Python</option>
+                <option value="markdown">Markdown</option>
+                <option value="mysql">MySQL</option>
+                <option value="nasm">NASM</option>
+                <option value="rust">Rust</option>
+                <option value="text">Text</option>
+                <option value="yaml">YAML</option>
+
+            </select>
+            <br />
+            <label for="color">Color scheme:</label>
+            <select name="color" id="color">
+                <option value="default">Default</option>
+                <option value="colorful">Colorful </option>
+            </select>
+            <br />
+            WCAG (Accessibility):
+            <br />
+            <label><input type="radio" id="none" name="wcag" value="none" checked>None</label>
+            <label><input type="radio" id="aa" name="wcag" value="aa">AA</label>
+            <label><input type="radio" id="aaa" name="wcag" value="aaa">AAA</label>
+            <br />
+            <label for="lines">Line numbers:</label>
+            <input type="checkbox" id="lines" name="lines">
+            <br />
+            <label for="hilite">Highlight lines (optional):</label>
+            <input type="text" id="hilite" name="hilite" placeholder="1 3 23">
+            <br />
+            <label for="bold">Bold everything:</label>
+            <input type="checkbox" name="bold" id="bold">
+            <br />
+            <br/>
+            <input type="submit" value="Highlight Code">
+        </fieldset>
+    </form>
+    <h3>Raw HTML (copy this directly into the Canvas HTML editor)</h3>
+    <div id="rawDiv">
+        <textarea name="raw" id="raw" cols=80 rows="20"></textarea>
+        <br />
+        <button id="copyButton">Copy Text</button>
+    </div>
+    <h3>Code Preview (Language: <span id="type">NA</span>)</h3>
+    <div id="formatted"></div>
+
+</body>
+
+</html>
